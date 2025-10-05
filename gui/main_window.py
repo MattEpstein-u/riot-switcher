@@ -266,7 +266,7 @@ class MainWindow(QMainWindow):
         bottom_toolbar = QHBoxLayout()
         bottom_toolbar.setSpacing(6)
         
-        self.refresh_btn = QPushButton("🔄")
+        self.refresh_btn = QPushButton("↻")
         self.refresh_btn.clicked.connect(self.refresh_status)
         self.refresh_btn.setFixedSize(30, 24)
         self.refresh_btn.setToolTip("Refresh Status")
