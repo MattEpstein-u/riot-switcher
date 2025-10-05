@@ -73,11 +73,21 @@ class MainWindow(QMainWindow):
         
         accounts_layout.addLayout(account_buttons_layout)
         
-        # Switch button
-        self.switch_btn = QPushButton("Switch to Selected Account")
+        # Account action buttons
+        account_action_layout = QVBoxLayout()
+        
+        self.switch_btn = QPushButton("🔄 Switch to Selected Account")
         self.switch_btn.clicked.connect(self.switch_account)
         self.switch_btn.setEnabled(False)
-        accounts_layout.addWidget(self.switch_btn)
+        self.switch_btn.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; font-weight: bold; padding: 8px; }")
+        account_action_layout.addWidget(self.switch_btn)
+        
+        self.login_help_btn = QPushButton("🚀 Quick Login Guide")
+        self.login_help_btn.clicked.connect(self.show_login_guide)
+        self.login_help_btn.setEnabled(False)
+        account_action_layout.addWidget(self.login_help_btn)
+        
+        accounts_layout.addLayout(account_action_layout)
         
         layout.addWidget(accounts_group)
         
@@ -161,9 +171,11 @@ class MainWindow(QMainWindow):
     def on_account_selected(self):
         """Handle account selection"""
         selected_items = self.account_list.selectedItems()
-        self.switch_btn.setEnabled(len(selected_items) > 0)
-        self.edit_account_btn.setEnabled(len(selected_items) > 0)
-        self.delete_account_btn.setEnabled(len(selected_items) > 0)
+        has_selection = len(selected_items) > 0
+        self.switch_btn.setEnabled(has_selection)
+        self.edit_account_btn.setEnabled(has_selection)
+        self.delete_account_btn.setEnabled(has_selection)
+        self.login_help_btn.setEnabled(has_selection)
         
     def add_account(self):
         """Open dialog to add new account"""
@@ -283,15 +295,87 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("Status refreshed", 2000)
         
     def backup_session(self):
-        """Backup current Riot session"""
+        """Backup current Riot session for the logged-in account"""
+        # Check if someone is logged in
+        if not self.riot_client.is_logged_in():
+            QMessageBox.warning(
+                self, 
+                "No Session Found", 
+                "No active session detected.\n\n"
+                "To create a session backup:\n"
+                "1. Log into Riot Client\n"
+                "2. ✅ Check 'Stay logged in' box\n"
+                "3. Complete login\n"
+                "4. Try backup again"
+            )
+            return
+            
+        # Ask which account this session belongs to
+        accounts = self.account_manager.get_all_accounts()
+        if not accounts:
+            QMessageBox.warning(
+                self,
+                "No Accounts Found",
+                "You need to add accounts first before backing up sessions.\n\nClick 'Add Account' to get started."
+            )
+            return
+            
+        # If only one account, use it automatically
+        if len(accounts) == 1:
+            target_account = accounts[0]
+            full_account = self.account_manager.get_account(target_account['id'])
+        else:
+            # Let user choose which account this session belongs to
+            from PyQt6.QtWidgets import QInputDialog
+            account_names = [f"{acc['display_name']} ({acc['username']})" for acc in accounts]
+            
+            selected_name, ok = QInputDialog.getItem(
+                self,
+                "Select Account",
+                "Which account does this session belong to?",
+                account_names,
+                0,
+                False
+            )
+            
+            if not ok:
+                return
+                
+            # Find the selected account
+            selected_index = account_names.index(selected_name)
+            target_account = accounts[selected_index]
+            full_account = self.account_manager.get_account(target_account['id'])
+        
         try:
-            if self.riot_client.backup_current_session():
-                QMessageBox.information(self, "Success", "Current session backed up successfully!")
-                self.statusBar().showMessage("Session backed up", 3000)
+            self.statusBar().showMessage("Creating session backup...", 0)
+            success = self.riot_client.backup_account_session(full_account)
+            
+            if success:
+                QMessageBox.information(
+                    self, 
+                    "Session Backed Up!", 
+                    f"✅ Session successfully backed up for {full_account['display_name']}!\n\n"
+                    "This account can now be switched to automatically.\n"
+                    "The session will persist as long as 'Stay logged in' was checked."
+                )
+                self.statusBar().showMessage(f"Session backed up for {full_account['display_name']}", 5000)
+                
+                # Mark account as used and refresh
+                self.account_manager.mark_account_used(full_account['id'])
+                self.load_accounts()
             else:
-                QMessageBox.warning(self, "Warning", "No active session to backup")
+                QMessageBox.warning(
+                    self, 
+                    "Backup Failed", 
+                    "Failed to backup session.\n\nMake sure:\n"
+                    "• You're logged into Riot Client\n"
+                    "• 'Stay logged in' was checked\n"
+                    "• The application has file write permissions"
+                )
+                
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to backup session: {str(e)}")
+            self.statusBar().showMessage("Backup failed", 3000)
             
     def force_logout(self):
         """Force logout from current account"""
@@ -337,3 +421,53 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to clear session: {str(e)}")
                 self.statusBar().showMessage("Clear failed", 3000)
+                
+    def show_login_guide(self):
+        """Show login guide for selected account"""
+        selected_items = self.account_list.selectedItems()
+        if not selected_items:
+            return
+            
+        account_id = selected_items[0].data(Qt.ItemDataRole.UserRole)
+        account = self.account_manager.get_account(account_id)
+        
+        # Check if account already has a saved session
+        account_backup_dir = self.riot_client._get_account_backup_path(account['display_name'])
+        has_saved_session = os.path.exists(account_backup_dir)
+        
+        if has_saved_session:
+            guide_text = f"""🎮 Account: {account['display_name']}
+✅ Status: Ready for automatic switching!
+
+This account already has a saved session.
+Click "Switch to Selected Account" for instant login.
+
+💡 Tip: If switching doesn't work, the saved session might be expired. 
+You can create a fresh session by:
+1. Manually logging in again
+2. Checking "Stay logged in"  
+3. Clicking "Backup Current Session"
+            """
+        else:
+            guide_text = f"""🎮 Account: {account['display_name']}
+⚠️  Status: First-time setup required
+
+📋 SETUP STEPS:
+1. Click "Switch to Selected Account" below
+2. Riot Client will open to login screen
+3. Enter credentials:
+   • Username: {account['username']}
+   • Password: [your password]
+4. ✅ IMPORTANT: Check "Stay logged in" box!
+5. Complete login process
+6. Close Riot Client when done
+7. Come back here and click "Backup Current Session"
+
+🏆 After setup: Future switches will be instant!
+            """
+            
+        QMessageBox.information(
+            self,
+            f"Login Guide - {account['display_name']}",
+            guide_text
+        )

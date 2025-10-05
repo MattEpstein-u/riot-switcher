@@ -37,12 +37,13 @@ python main.py
 
 ## How It Works
 
-The application works by:
+The application leverages Riot's **"Stay logged in"** feature for seamless account switching:
 
 1. **Account Management**: Stores your account credentials securely using encryption
-2. **Session Switching**: Backs up and restores Riot Client configuration files
-3. **Process Management**: Automatically handles closing and restarting the Riot Client
-4. **Configuration Sync**: Manages Riot's private settings and session data
+2. **Session Capture**: Backs up your "Stay logged in" sessions after you log in manually
+3. **Session Switching**: Swaps between saved sessions to instantly switch accounts
+4. **Process Management**: Automatically handles closing and restarting the Riot Client
+5. **Smart Detection**: Knows when accounts are ready for automatic switching vs. need setup
 
 ## Usage
 
@@ -57,17 +58,27 @@ The application works by:
 
 ### Switching Accounts
 
+#### For Accounts with Saved Sessions (Instant Switch):
 1. Select an account from the list
-2. Click "Switch to Selected Account"
-3. Confirm the switch (this will close Riot Client if running)
-4. The application will handle the rest automatically
+2. Click "🔄 Switch to Selected Account"
+3. Confirm the switch
+4. Riot Client will open already logged in! 🚀
 
-### First-Time Setup per Account
+#### First-Time Setup per Account:
+1. Select a new account and click "🚀 Quick Login Guide"
+2. Follow the step-by-step instructions
+3. **Critical**: When logging in, check the ✅ **"Stay logged in"** box
+4. After successful login, close Riot Client
+5. Click "Backup Current Session" in the app
+6. Future switches to this account will be instant!
 
-The first time you switch to an account:
-1. The Riot Client will start but you'll need to log in manually
-2. Once logged in, the application will automatically backup this session
-3. Future switches to this account will be automatic
+### The "Stay Logged In" Workflow
+
+This app is designed around Riot's "Stay logged in" feature:
+- ✅ **Check "Stay logged in"** when setting up each account
+- 🔄 App swaps these saved sessions for instant switching  
+- 🔐 Sessions persist until you manually log out in Riot Client
+- ⚡ Switching takes ~5 seconds instead of manual typing
 
 ## File Structure
 

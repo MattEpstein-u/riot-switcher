@@ -47,7 +47,8 @@ def test_detection():
     print(f"System: {rc.system}")
     print(f"Config path: {rc.riot_paths['config']}")
     print(f"Install path: {rc.riot_paths['install']}")
-    print(f"Running: {rc.is_running()}")
+    print(f"Client running: {rc.is_running()}")
+    print(f"User logged in: {rc.is_logged_in()}")
     
     processes = rc.get_running_processes()
     if processes:
@@ -58,7 +59,30 @@ def test_detection():
         print("No Riot processes detected")
         
     current_user = rc.get_current_user()
-    print(f"Current user: {current_user}")
+    print(f"Current user status: {current_user}")
+    
+    # Check for session files
+    print("\nSession files check:")
+    import os
+    session_files = [
+        'RiotGamesPrivateSettings.yaml',
+        'Data/RiotGamesPrivateSettings.yaml', 
+        'Data/RiotClientPrivateSettings.yaml',
+        'RSOData',
+        'Plugins/Authentication'
+    ]
+    
+    config_dir = os.path.join(rc.riot_paths['config'], 'Riot Client')
+    for session_file in session_files:
+        full_path = os.path.join(config_dir, session_file)
+        exists = os.path.exists(full_path)
+        print(f"  - {session_file}: {'✅ Found' if exists else '❌ Not found'}")
+        if exists and os.path.isfile(full_path):
+            try:
+                size = os.path.getsize(full_path)
+                print(f"    Size: {size} bytes")
+            except:
+                pass
 
 if __name__ == "__main__":
     print("Choose test:")
