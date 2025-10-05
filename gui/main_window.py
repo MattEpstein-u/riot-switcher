@@ -1,3 +1,4 @@
+import os
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QPushButton, QLabel, QComboBox, QListWidget, 
                              QMessageBox, QStatusBar, QGroupBox, QListWidgetItem)
@@ -82,15 +83,35 @@ class MainWindow(QMainWindow):
         
         # Quick actions group
         actions_group = QGroupBox("Quick Actions")
-        actions_layout = QHBoxLayout(actions_group)
+        actions_layout = QVBoxLayout(actions_group)
+        
+        # First row of buttons
+        actions_row1 = QHBoxLayout()
         
         self.refresh_btn = QPushButton("Refresh Status")
         self.refresh_btn.clicked.connect(self.refresh_status)
-        actions_layout.addWidget(self.refresh_btn)
+        actions_row1.addWidget(self.refresh_btn)
         
         self.backup_btn = QPushButton("Backup Current Session")
         self.backup_btn.clicked.connect(self.backup_session)
-        actions_layout.addWidget(self.backup_btn)
+        actions_row1.addWidget(self.backup_btn)
+        
+        actions_layout.addLayout(actions_row1)
+        
+        # Second row of buttons
+        actions_row2 = QHBoxLayout()
+        
+        self.logout_btn = QPushButton("Force Logout")
+        self.logout_btn.clicked.connect(self.force_logout)
+        self.logout_btn.setStyleSheet("QPushButton { background-color: #ff6b6b; color: white; }")
+        actions_row2.addWidget(self.logout_btn)
+        
+        self.clear_session_btn = QPushButton("Clear Session Data")
+        self.clear_session_btn.clicked.connect(self.clear_session)
+        self.clear_session_btn.setStyleSheet("QPushButton { background-color: #ffa500; color: white; }")
+        actions_row2.addWidget(self.clear_session_btn)
+        
+        actions_layout.addLayout(actions_row2)
         
         layout.addWidget(actions_group)
         
@@ -226,16 +247,36 @@ class MainWindow(QMainWindow):
         )
         
         if reply == QMessageBox.StandardButton.Yes:
-            try:
-                success = self.riot_client.switch_account(account)
-                if success:
-                    self.statusBar().showMessage("Account switched successfully!", 5000)
-                    QMessageBox.information(self, "Success", f"Successfully switched to {account['display_name']}!")
-                else:
-                    QMessageBox.warning(self, "Error", "Failed to switch account. Check the logs for details.")
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to switch account: {str(e)}")
-                
+                try:
+                    self.statusBar().showMessage("Switching accounts...", 0)
+                    success = self.riot_client.switch_account(account)
+                    if success:
+                        # Mark account as used
+                        self.account_manager.mark_account_used(account_id)
+                        self.load_accounts()  # Refresh the list
+                        
+                        self.statusBar().showMessage("Account switched successfully!", 5000)
+                        
+                        # Check if this was first time setup
+                        account_backup_dir = self.riot_client._get_account_backup_path(account['display_name'])
+                        if not account_backup_dir or not os.path.exists(account_backup_dir):
+                            QMessageBox.information(
+                                self, 
+                                "First Time Setup", 
+                                f"Successfully initiated switch to {account['display_name']}!\n\n"
+                                "IMPORTANT: After logging in successfully:\n"
+                                "1. Close Riot Client\n"
+                                "2. Click 'Backup Current Session'\n"
+                                "3. Future switches will be automatic!"
+                            )
+                        else:
+                            QMessageBox.information(self, "Success", f"Successfully switched to {account['display_name']}!")
+                    else:
+                        QMessageBox.warning(self, "Error", "Failed to switch account. Check the logs for details.")
+                except Exception as e:
+                    QMessageBox.critical(self, "Error", f"Failed to switch account: {str(e)}")
+                    self.statusBar().showMessage("Switch failed", 3000)
+                    
     def refresh_status(self):
         """Manually refresh Riot Client status"""
         self.update_riot_status()
@@ -251,3 +292,48 @@ class MainWindow(QMainWindow):
                 QMessageBox.warning(self, "Warning", "No active session to backup")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to backup session: {str(e)}")
+            
+    def force_logout(self):
+        """Force logout from current account"""
+        reply = QMessageBox.question(
+            self,
+            "Confirm Force Logout",
+            "This will force logout from the current Riot account.\nAny unsaved progress may be lost.\n\nContinue?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                self.statusBar().showMessage("Forcing logout...", 0)
+                success = self.riot_client.force_logout()
+                if success:
+                    QMessageBox.information(self, "Success", "Successfully logged out!")
+                    self.statusBar().showMessage("Logged out successfully", 3000)
+                    self.update_riot_status()  # Refresh status
+                else:
+                    QMessageBox.warning(self, "Warning", "Logout completed but some files couldn't be cleared")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to logout: {str(e)}")
+                self.statusBar().showMessage("Logout failed", 3000)
+                
+    def clear_session(self):
+        """Clear session data without closing client"""
+        reply = QMessageBox.question(
+            self,
+            "Confirm Clear Session",
+            "This will clear session data while keeping Riot Client running.\nYou may need to restart the client.\n\nContinue?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                self.statusBar().showMessage("Clearing session data...", 0)
+                success = self.riot_client.clear_current_session()
+                if success:
+                    QMessageBox.information(self, "Success", "Session data cleared!")
+                    self.statusBar().showMessage("Session data cleared", 3000)
+                else:
+                    QMessageBox.information(self, "Info", "No session data found to clear")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to clear session: {str(e)}")
+                self.statusBar().showMessage("Clear failed", 3000)

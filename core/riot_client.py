@@ -172,11 +172,15 @@ class RiotClient:
             print(f"Error restoring session: {e}")
             return False
             
+    def _get_account_backup_path(self, display_name):
+        """Get the backup path for a specific account"""
+        return os.path.join(os.getcwd(), 'account_backups', display_name)
+            
     def create_account_backup(self, account):
         """Create a backup for a specific account"""
         try:
             # Create account-specific backup directory
-            backup_dir = os.path.join(os.getcwd(), 'account_backups', account['display_name'])
+            backup_dir = self._get_account_backup_path(account['display_name'])
             os.makedirs(backup_dir, exist_ok=True)
             
             source_dir = os.path.join(self.riot_paths['config'], 'Riot Client')
@@ -201,35 +205,125 @@ class RiotClient:
             print(f"Error creating account backup: {e}")
             return False
             
+    def clear_current_session(self):
+        """Clear current Riot session data to force logout"""
+        try:
+            print("Clearing current session data...")
+            
+            # Main config directory
+            config_dir = os.path.join(self.riot_paths['config'], 'Riot Client')
+            
+            # Files and directories to clear for logout
+            logout_targets = [
+                'RiotGamesPrivateSettings.yaml',
+                'RiotClientPrivateSettings.yaml', 
+                'Data/RiotGamesPrivateSettings.yaml',
+                'Data/RiotClientPrivateSettings.yaml',
+                'Data/Cache',
+                'Data/Logs',
+                'Data/CrashReporting',
+                'Data/RiotClientInstalls.json',
+                'Plugins/Authentication',
+                'Plugins/rcp-fe-lol-auth'
+            ]
+            
+            cleared_items = []
+            
+            for target in logout_targets:
+                target_path = os.path.join(config_dir, target)
+                
+                if os.path.exists(target_path):
+                    try:
+                        if os.path.isfile(target_path):
+                            os.remove(target_path)
+                            cleared_items.append(f"File: {target}")
+                        elif os.path.isdir(target_path):
+                            shutil.rmtree(target_path)
+                            cleared_items.append(f"Dir: {target}")
+                    except Exception as e:
+                        print(f"Warning: Could not clear {target}: {e}")
+                        
+            if cleared_items:
+                print(f"Cleared {len(cleared_items)} session items:")
+                for item in cleared_items:
+                    print(f"  - {item}")
+                return True
+            else:
+                print("No session files found to clear")
+                return False
+                
+        except Exception as e:
+            print(f"Error clearing session: {e}")
+            return False
+            
+    def force_logout(self):
+        """Force logout by clearing session and restarting client"""
+        try:
+            print("Forcing logout...")
+            
+            # Step 1: Close Riot Client
+            if self.is_running():
+                print("Closing Riot Client...")
+                self.terminate_riot_client()
+                time.sleep(3)
+                
+            # Step 2: Clear session data
+            self.clear_current_session()
+            
+            # Step 3: Wait a moment for file system
+            time.sleep(2)
+            
+            print("Logout completed!")
+            return True
+            
+        except Exception as e:
+            print(f"Error during logout: {e}")
+            return False
+
     def switch_account(self, account):
         """Switch to a different Riot account"""
         try:
             print(f"Switching to account: {account['display_name']}")
             
-            # Step 1: Terminate Riot Client if running
+            # Step 1: Force logout from current account
+            print("Logging out from current account...")
             if self.is_running():
-                print("Terminating Riot Client...")
-                self.terminate_riot_client()
-                time.sleep(3)  # Wait for processes to fully terminate
+                # First backup current session if logged in
+                current_user = self.get_current_user()
+                if current_user and current_user != "User logged in (username not accessible)":
+                    print("Backing up current session...")
+                    self.backup_current_session()
                 
-            # Step 2: Backup current session
-            print("Backing up current session...")
-            self.backup_current_session()
-            
-            # Step 3: Check if we have a backup for this account
-            account_backup_dir = os.path.join(os.getcwd(), 'account_backups', account['display_name'])
+                # Force logout
+                self.force_logout()
+            else:
+                # Even if not running, clear any lingering session data
+                self.clear_current_session()
+                
+            # Step 2: Check if we have a backup for this account
+            account_backup_dir = self._get_account_backup_path(account['display_name'])
             
             if os.path.exists(account_backup_dir):
                 print(f"Restoring session for {account['display_name']}...")
+                time.sleep(2)  # Wait after clearing before restoring
                 self.restore_session(account_backup_dir)
+                print("Session restored! Starting Riot Client...")
+                time.sleep(1)
+                self.start_riot_client()
             else:
                 print(f"No existing session backup for {account['display_name']}")
-                print("You'll need to log in manually the first time.")
+                print("Starting Riot Client for first-time setup...")
+                print(f"Please log in manually with: {account['username']}")
+                time.sleep(1)
+                self.start_riot_client()
+                print("\n=== IMPORTANT ===")
+                print("After logging in successfully:")
+                print("1. Close Riot Client")
+                print("2. Click 'Backup Current Session' in the app")
+                print("3. Future switches will be automatic!")
+                print("================")
                 
-            # Step 4: Start Riot Client (optional)
-            # self.start_riot_client()
-            
-            print("Account switch completed!")
+            print("Account switch process completed!")
             return True
             
         except Exception as e:
