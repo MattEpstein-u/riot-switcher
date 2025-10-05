@@ -270,6 +270,24 @@ class MainWindow(QMainWindow):
         self.refresh_btn.clicked.connect(self.refresh_status)
         self.refresh_btn.setFixedSize(30, 24)
         self.refresh_btn.setToolTip("Refresh Status")
+        self.refresh_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #404040;
+                border: 1px solid #555555;
+                border-radius: 4px;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: #4a4a4a;
+            }
+            QPushButton:pressed {
+                background-color: #353535;
+            }
+            QPushButton:focus {
+                background-color: #404040;
+                outline: none;
+            }
+        """)
         bottom_toolbar.addWidget(self.refresh_btn)
         
         self.logout_btn = QPushButton("⚠ Logout")
