@@ -1,3 +1,0 @@
-# Additional dependencies for building executable
-pyinstaller>=6.0.0
-auto-py-to-exe>=2.40.0

@@ -84,16 +84,19 @@ This app is designed around Riot's "Stay logged in" feature:
 
 ```
 riot-switcher/
-├── main.py                 # Application entry point
-├── requirements.txt        # Python dependencies
+├── main.py                      # Application entry point
+├── requirements.txt             # Python dependencies
+├── build_simple.bat             # Windows build script
+├── build_for_friend.py          # Package creation script
+├── RiotAccountSwitcher.spec     # PyInstaller specification
 ├── gui/
-│   ├── main_window.py      # Main application window
-│   └── account_dialog.py   # Account management dialog
+│   ├── main_window.py           # Main application window
+│   └── account_dialog.py        # Account management dialog
 ├── core/
-│   ├── account_manager.py  # Account storage and encryption
-│   └── riot_client.py      # Riot Client interaction
-├── backups/                # Session backups (created at runtime)
-└── account_backups/        # Account-specific backups (created at runtime)
+│   ├── account_manager.py       # Account storage and encryption
+│   └── riot_client.py           # Riot Client interaction
+├── backups/                     # Session backups (created at runtime)
+└── account_backups/             # Account-specific backups (created at runtime)
 ```
 
 ## Security

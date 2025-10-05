@@ -1,10 +1,8 @@
 import sqlite3
-import json
 import os
 import uuid
 from datetime import datetime
 from cryptography.fernet import Fernet
-import base64
 
 class AccountManager:
     def __init__(self, db_path="accounts.db"):

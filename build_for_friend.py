@@ -20,8 +20,6 @@ def build_executable():
         "--onefile",                    # Single executable file
         "--windowed",                   # No console window
         "--name=RiotAccountSwitcher",   # Executable name
-        "--icon=resources/icon.ico",    # Icon (if available)
-        "--add-data=resources;resources", # Include resources
         "--hidden-import=PyQt6.QtCore",
         "--hidden-import=PyQt6.QtGui", 
         "--hidden-import=PyQt6.QtWidgets",
@@ -31,9 +29,7 @@ def build_executable():
         "main.py"
     ]
     
-    # Create icon if it doesn't exist (optional)
-    if not os.path.exists("resources"):
-        os.makedirs("resources")
+
     
     # Run PyInstaller
     try:

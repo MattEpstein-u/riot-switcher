@@ -5,7 +5,6 @@ import shutil
 import yaml
 import json
 import time
-from pathlib import Path
 import subprocess
 
 class RiotClient:
@@ -260,10 +259,7 @@ class RiotClient:
             print(f"Error calculating directory size: {e}")
         return total_size
 
-    def create_account_backup(self, account):
-        """Legacy method - redirects to backup_account_session"""
-        return self.backup_account_session(account)
-            
+
     def clear_current_session(self):
         """Clear current Riot session data to force logout"""
         try:

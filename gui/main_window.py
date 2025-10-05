@@ -1,9 +1,9 @@
 import os
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
-                             QPushButton, QLabel, QComboBox, QListWidget, 
-                             QMessageBox, QStatusBar, QGroupBox, QListWidgetItem)
+                             QPushButton, QLabel, QListWidget, 
+                             QMessageBox, QListWidgetItem)
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QIcon, QFont
+from PyQt6.QtGui import QFont
 from core.account_manager import AccountManager
 from core.riot_client import RiotClient
 from gui.account_dialog import AccountDialog
@@ -18,8 +18,8 @@ class MainWindow(QMainWindow):
         
     def init_ui(self):
         self.setWindowTitle("🎮 Riot Account Switcher")
-        self.setGeometry(100, 100, 480, 420)  # Optimized for 2-10 accounts
-        self.setMinimumSize(460, 400)
+        self.setGeometry(100, 100, 600, 500)  # Larger size as shown in screenshot
+        self.setMinimumSize(580, 480)
         
         # Modern dark theme optimized for account switching
         self.setStyleSheet("""
@@ -133,9 +133,9 @@ class MainWindow(QMainWindow):
         accounts_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #ffffff; margin-bottom: 4px;")
         left_panel.addWidget(accounts_label)
         
-        # Account list - optimized for 2-10 accounts
+        # Account list - larger size for better visibility
         self.account_list = QListWidget()
-        self.account_list.setMaximumHeight(180)  # Perfect for 2-10 accounts
+        self.account_list.setMaximumHeight(220)  # More space for better viewing
         self.account_list.setAlternatingRowColors(True)
         self.account_list.setStyleSheet("""
             QListWidget {
@@ -285,9 +285,12 @@ class MainWindow(QMainWindow):
             }
             QPushButton:focus {
                 background-color: #404040;
+                border: 1px solid #555555;
                 outline: none;
             }
         """)
+        # Remove focus after click to prevent highlighting
+        self.refresh_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         bottom_toolbar.addWidget(self.refresh_btn)
         
         self.logout_btn = QPushButton("⚠ Logout")
