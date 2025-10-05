@@ -455,44 +455,38 @@ class MainWindow(QMainWindow):
         account_id = selected_items[0].data(Qt.ItemDataRole.UserRole)
         account = self.account_manager.get_account(account_id)
         
-        # Confirm switch
-        reply = QMessageBox.question(
-            self,
-            "Confirm Account Switch",
-            f"Switch to account '{account['display_name']}'?\n\nThis will close the Riot Client if it's running.",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-        )
-        
-        if reply == QMessageBox.StandardButton.Yes:
-                try:
-                    self.statusBar().showMessage("Switching accounts...", 0)
-                    success = self.riot_client.switch_account(account)
-                    if success:
-                        # Mark account as used
-                        self.account_manager.mark_account_used(account_id)
-                        self.load_accounts()  # Refresh the list
-                        
-                        self.statusBar().showMessage("Account switched successfully!", 5000)
-                        
-                        # Check if this was first time setup
-                        account_backup_dir = self.riot_client._get_account_backup_path(account['display_name'])
-                        if not account_backup_dir or not os.path.exists(account_backup_dir):
-                            QMessageBox.information(
-                                self, 
-                                "First Time Setup", 
-                                f"Successfully initiated switch to {account['display_name']}!\n\n"
-                                "IMPORTANT: After logging in successfully:\n"
-                                "1. Close Riot Client\n"
-                                "2. Click 'Backup Current Session'\n"
-                                "3. Future switches will be automatic!"
-                            )
-                        else:
-                            QMessageBox.information(self, "Success", f"Successfully switched to {account['display_name']}!")
-                    else:
-                        QMessageBox.warning(self, "Error", "Failed to switch account. Check the logs for details.")
-                except Exception as e:
-                    QMessageBox.critical(self, "Error", f"Failed to switch account: {str(e)}")
-                    self.statusBar().showMessage("Switch failed", 3000)
+        # Switch immediately without confirmation
+        try:
+            self.statusBar().showMessage(f"Switching to {account['display_name']}...", 0)
+            success = self.riot_client.switch_account(account)
+            if success:
+                # Mark account as used
+                self.account_manager.mark_account_used(account_id)
+                self.load_accounts()  # Refresh the list
+                
+                # Check if this was first time setup (only show message for first-time setup)
+                account_backup_dir = self.riot_client._get_account_backup_path(account['display_name'])
+                if not account_backup_dir or not os.path.exists(account_backup_dir):
+                    # Only show dialog for first-time setup guidance
+                    QMessageBox.information(
+                        self, 
+                        "First Time Setup", 
+                        f"Successfully initiated switch to {account['display_name']}!\n\n"
+                        "IMPORTANT: After logging in successfully:\n"
+                        "1. Close Riot Client\n"
+                        "2. Click '💾 Backup Session'\n"
+                        "3. Future switches will be instant!"
+                    )
+                    self.statusBar().showMessage("First-time setup initiated - follow the instructions", 8000)
+                else:
+                    # For established accounts, just show status bar message
+                    self.statusBar().showMessage(f"✅ Switched to {account['display_name']}", 4000)
+            else:
+                QMessageBox.warning(self, "Switch Failed", "Failed to switch account. Please try again or check Riot Client status.")
+                self.statusBar().showMessage("Switch failed", 3000)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to switch account: {str(e)}")
+            self.statusBar().showMessage("Switch failed", 3000)
                     
     def refresh_status(self):
         """Manually refresh Riot Client status"""

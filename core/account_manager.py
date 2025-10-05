@@ -93,7 +93,7 @@ class AccountManager:
         
         cursor.execute('''
         SELECT id, username, display_name, created_at, last_used
-        FROM accounts ORDER BY display_name
+        FROM accounts ORDER BY created_at ASC
         ''')
         
         rows = cursor.fetchall()
