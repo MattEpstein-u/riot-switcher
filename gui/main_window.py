@@ -18,8 +18,8 @@ class MainWindow(QMainWindow):
         
     def init_ui(self):
         self.setWindowTitle("🎮 Riot Account Switcher")
-        self.setGeometry(100, 100, 600, 500)  # Larger size as shown in screenshot
-        self.setMinimumSize(580, 480)
+        self.setGeometry(100, 100, 650, 580)  # Taller to fit 8 accounts comfortably
+        self.setMinimumSize(630, 560)
         
         # Modern dark theme optimized for account switching
         self.setStyleSheet("""
@@ -133,9 +133,10 @@ class MainWindow(QMainWindow):
         accounts_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #ffffff; margin-bottom: 4px;")
         left_panel.addWidget(accounts_label)
         
-        # Account list - larger size for better visibility
+        # Account list - optimized for 8 accounts visibility
         self.account_list = QListWidget()
-        self.account_list.setMaximumHeight(220)  # More space for better viewing
+        self.account_list.setMinimumHeight(280)  # Enough space for 8 accounts
+        self.account_list.setMaximumHeight(320)  # Allow some extra room
         self.account_list.setAlternatingRowColors(True)
         self.account_list.setStyleSheet("""
             QListWidget {
@@ -147,10 +148,12 @@ class MainWindow(QMainWindow):
                 font-family: 'Consolas', 'Courier New', monospace;
             }
             QListWidget::item {
-                padding: 10px 8px;
+                padding: 8px 8px;
                 border-radius: 4px;
                 margin: 1px;
                 border-bottom: 1px solid #333333;
+                min-height: 28px;
+                max-height: 32px;
             }
             QListWidget::item:selected {
                 background-color: #0078d4;
