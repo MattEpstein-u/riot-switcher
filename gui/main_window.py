@@ -266,30 +266,26 @@ class MainWindow(QMainWindow):
         bottom_toolbar = QHBoxLayout()
         bottom_toolbar.setSpacing(6)
         
-        self.refresh_btn = QPushButton("↻")
+        self.refresh_btn = QPushButton("🔄 Refresh")
         self.refresh_btn.clicked.connect(self.refresh_status)
-        self.refresh_btn.setFixedSize(30, 24)
-        self.refresh_btn.setToolTip("Refresh Status")
+        self.refresh_btn.setFixedHeight(24)
+        self.refresh_btn.setToolTip("Refresh Riot Client status and account information")
         self.refresh_btn.setStyleSheet("""
             QPushButton {
-                background-color: #404040;
-                border: 1px solid #555555;
+                background-color: #2196F3;
+                border: none;
                 border-radius: 4px;
                 color: white;
+                font-weight: 500;
+                padding: 4px 12px;
             }
             QPushButton:hover {
-                background-color: #4a4a4a;
+                background-color: #1976D2;
             }
             QPushButton:pressed {
-                background-color: #353535;
-            }
-            QPushButton:focus {
-                background-color: #404040;
-                border: 1px solid #555555;
-                outline: none;
+                background-color: #1565C0;
             }
         """)
-        # Remove focus after click to prevent highlighting
         self.refresh_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         bottom_toolbar.addWidget(self.refresh_btn)
         
