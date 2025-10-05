@@ -15,18 +15,11 @@ class AccountDialog(QDialog):
     def init_ui(self):
         self.setWindowTitle("Add Account" if not self.account else "Edit Account")
         self.setModal(True)
-        self.setFixedSize(400, 250)
+        self.setFixedSize(380, 200)
         
         layout = QVBoxLayout(self)
-        
-        # Title
-        title = QLabel("Add New Account" if not self.account else "Edit Account")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_font = QFont()
-        title_font.setPointSize(14)
-        title_font.setBold(True)
-        title.setFont(title_font)
-        layout.addWidget(title)
+        layout.setSpacing(8)
+        layout.setContentsMargins(16, 16, 16, 16)
         
         # Form layout
         form_layout = QFormLayout()
@@ -58,10 +51,10 @@ class AccountDialog(QDialog):
         password_layout.addWidget(self.show_password_btn)
         layout.addLayout(password_layout)
         
-        # Warning label
-        warning_label = QLabel("⚠️ Passwords are encrypted and stored locally only")
-        warning_label.setStyleSheet("color: orange; font-size: 11px;")
-        warning_label.setWordWrap(True)
+        # Compact warning label
+        warning_label = QLabel("🔒 Encrypted & stored locally")
+        warning_label.setStyleSheet("color: #888; font-size: 10px;")
+        warning_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(warning_label)
         
         # Buttons

@@ -17,113 +17,276 @@ class MainWindow(QMainWindow):
         self.setup_timer()
         
     def init_ui(self):
-        self.setWindowTitle("Riot Account Switcher")
-        self.setGeometry(100, 100, 500, 600)
+        self.setWindowTitle("🎮 Riot Account Switcher")
+        self.setGeometry(100, 100, 480, 420)  # Optimized for 2-10 accounts
+        self.setMinimumSize(460, 400)
+        
+        # Modern dark theme optimized for account switching
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #1e1e1e;
+                color: #ffffff;
+                font-family: 'Segoe UI', Arial, sans-serif;
+            }
+            QWidget {
+                background-color: #1e1e1e;
+                color: #ffffff;
+            }
+            QGroupBox {
+                font-weight: bold;
+                border: 1px solid #404040;
+                border-radius: 6px;
+                margin: 4px 0px;
+                padding-top: 8px;
+                background-color: #252525;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 8px;
+                padding: 0 4px 0 4px;
+                color: #ffffff;
+            }
+            QPushButton {
+                background-color: #404040;
+                border: 1px solid #555555;
+                border-radius: 5px;
+                padding: 6px 12px;
+                color: white;
+                font-weight: 500;
+                min-height: 16px;
+            }
+            QPushButton:hover {
+                background-color: #4a4a4a;
+                border-color: #666666;
+            }
+            QPushButton:pressed {
+                background-color: #353535;
+            }
+            QPushButton:disabled {
+                background-color: #2a2a2a;
+                color: #666666;
+                border-color: #333333;
+            }
+            QListWidget {
+                background-color: #2a2a2a;
+                border: 1px solid #404040;
+                border-radius: 4px;
+                padding: 4px;
+                selection-background-color: #0078d4;
+            }
+            QListWidget::item {
+                padding: 6px;
+                border-radius: 3px;
+                margin: 1px;
+            }
+            QListWidget::item:hover {
+                background-color: #373737;
+            }
+            QListWidget::item:selected {
+                background-color: #0078d4;
+                color: white;
+            }
+            QLabel {
+                color: #ffffff;
+            }
+            QStatusBar {
+                background-color: #1e1e1e;
+                color: #cccccc;
+                border-top: 1px solid #404040;
+            }
+        """)
         
         # Create central widget
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         
-        # Main layout
+        # Main layout with reduced spacing
         layout = QVBoxLayout(central_widget)
+        layout.setSpacing(8)  # Reduced spacing
+        layout.setContentsMargins(12, 12, 12, 12)  # Tighter margins
         
-        # Title
-        title = QLabel("Riot Games Account Switcher")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_font = QFont()
-        title_font.setPointSize(16)
-        title_font.setBold(True)
-        title.setFont(title_font)
-        layout.addWidget(title)
+        # Compact status bar at top
+        status_frame = QWidget()
+        status_frame.setStyleSheet("QWidget { background-color: #2b2b2b; border-radius: 6px; padding: 8px; }")
+        status_layout = QVBoxLayout(status_frame)
+        status_layout.setSpacing(4)
+        status_layout.setContentsMargins(8, 6, 8, 6)
         
-        # Current status group
-        status_group = QGroupBox("Current Status")
-        status_layout = QVBoxLayout(status_group)
-        
-        self.status_label = QLabel("Checking Riot Client status...")
+        self.status_label = QLabel("⟳ Checking...")
+        self.status_label.setStyleSheet("color: #ffffff; font-weight: bold;")
         status_layout.addWidget(self.status_label)
         
         self.current_account_label = QLabel("No account detected")
+        self.current_account_label.setStyleSheet("color: #cccccc; font-size: 11px;")
         status_layout.addWidget(self.current_account_label)
         
-        layout.addWidget(status_group)
+        layout.addWidget(status_frame)
         
-        # Account management group
-        accounts_group = QGroupBox("Saved Accounts")
-        accounts_layout = QVBoxLayout(accounts_group)
+        # Main accounts section
+        main_section = QHBoxLayout()
         
-        # Account list
+        # Left side - Account list (compact)
+        left_panel = QVBoxLayout()
+        
+        # Compact accounts section
+        accounts_label = QLabel("🎯 Your Accounts")
+        accounts_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #ffffff; margin-bottom: 4px;")
+        left_panel.addWidget(accounts_label)
+        
+        # Account list - optimized for 2-10 accounts
         self.account_list = QListWidget()
-        accounts_layout.addWidget(self.account_list)
+        self.account_list.setMaximumHeight(180)  # Perfect for 2-10 accounts
+        self.account_list.setAlternatingRowColors(True)
+        self.account_list.setStyleSheet("""
+            QListWidget {
+                background-color: #2a2a2a;
+                border: 1px solid #404040;
+                border-radius: 6px;
+                padding: 6px;
+                font-size: 12px;
+                font-family: 'Consolas', 'Courier New', monospace;
+            }
+            QListWidget::item {
+                padding: 10px 8px;
+                border-radius: 4px;
+                margin: 1px;
+                border-bottom: 1px solid #333333;
+            }
+            QListWidget::item:selected {
+                background-color: #0078d4;
+                color: white;
+                font-weight: 500;
+            }
+            QListWidget::item:hover {
+                background-color: #373737;
+            }
+            QListWidget::item:hover {
+                background-color: #484848;
+            }
+        """)
+        left_panel.addWidget(self.account_list)
         
-        # Account management buttons
-        account_buttons_layout = QHBoxLayout()
+        # Small account management buttons
+        small_buttons_layout = QHBoxLayout()
+        small_buttons_layout.setSpacing(4)
         
-        self.add_account_btn = QPushButton("Add Account")
+        self.add_account_btn = QPushButton("+ Add")
         self.add_account_btn.clicked.connect(self.add_account)
-        account_buttons_layout.addWidget(self.add_account_btn)
+        self.add_account_btn.setFixedHeight(24)
+        small_buttons_layout.addWidget(self.add_account_btn)
         
-        self.edit_account_btn = QPushButton("Edit Account")
+        self.edit_account_btn = QPushButton("✏ Edit")
         self.edit_account_btn.clicked.connect(self.edit_account)
-        account_buttons_layout.addWidget(self.edit_account_btn)
+        self.edit_account_btn.setEnabled(False)
+        self.edit_account_btn.setFixedHeight(24)
+        small_buttons_layout.addWidget(self.edit_account_btn)
         
-        self.delete_account_btn = QPushButton("Delete Account")
+        self.delete_account_btn = QPushButton("🗑 Del")
         self.delete_account_btn.clicked.connect(self.delete_account)
-        account_buttons_layout.addWidget(self.delete_account_btn)
+        self.delete_account_btn.setEnabled(False)
+        self.delete_account_btn.setFixedHeight(24)
+        small_buttons_layout.addWidget(self.delete_account_btn)
         
-        accounts_layout.addLayout(account_buttons_layout)
+        left_panel.addLayout(small_buttons_layout)
         
-        # Account action buttons
-        account_action_layout = QVBoxLayout()
+        # Right side - Action buttons
+        right_panel = QVBoxLayout()
+        right_panel.setSpacing(6)
         
-        self.switch_btn = QPushButton("🔄 Switch to Selected Account")
+        self.switch_btn = QPushButton("� SWITCH")
         self.switch_btn.clicked.connect(self.switch_account)
         self.switch_btn.setEnabled(False)
-        self.switch_btn.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; font-weight: bold; padding: 8px; }")
-        account_action_layout.addWidget(self.switch_btn)
+        self.switch_btn.setFixedHeight(40)
+        self.switch_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                font-weight: bold;
+                font-size: 14px;
+                border-radius: 6px;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QPushButton:disabled {
+                background-color: #666;
+                color: #999;
+            }
+        """)
+        right_panel.addWidget(self.switch_btn)
         
-        self.login_help_btn = QPushButton("🚀 Quick Login Guide")
+        self.login_help_btn = QPushButton("� Setup Guide")
         self.login_help_btn.clicked.connect(self.show_login_guide)
         self.login_help_btn.setEnabled(False)
-        account_action_layout.addWidget(self.login_help_btn)
+        self.login_help_btn.setFixedHeight(30)
+        self.login_help_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                border-radius: 4px;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+            QPushButton:disabled {
+                background-color: #666;
+                color: #999;
+            }
+        """)
+        right_panel.addWidget(self.login_help_btn)
         
-        accounts_layout.addLayout(account_action_layout)
-        
-        layout.addWidget(accounts_group)
-        
-        # Quick actions group
-        actions_group = QGroupBox("Quick Actions")
-        actions_layout = QVBoxLayout(actions_group)
-        
-        # First row of buttons
-        actions_row1 = QHBoxLayout()
-        
-        self.refresh_btn = QPushButton("Refresh Status")
-        self.refresh_btn.clicked.connect(self.refresh_status)
-        actions_row1.addWidget(self.refresh_btn)
-        
-        self.backup_btn = QPushButton("Backup Current Session")
+        # Quick actions in right panel
+        self.backup_btn = QPushButton("💾 Backup Session")
         self.backup_btn.clicked.connect(self.backup_session)
-        actions_row1.addWidget(self.backup_btn)
+        self.backup_btn.setFixedHeight(30)
+        self.backup_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #FF9800;
+                color: white;
+                border-radius: 4px;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #F57C00;
+            }
+        """)
+        right_panel.addWidget(self.backup_btn)
         
-        actions_layout.addLayout(actions_row1)
+        right_panel.addStretch()  # Push everything to top
         
-        # Second row of buttons
-        actions_row2 = QHBoxLayout()
+        # Add panels to main section
+        main_section.addLayout(left_panel, 2)  # Give more space to accounts
+        main_section.addLayout(right_panel, 1)  # Less space for buttons
         
-        self.logout_btn = QPushButton("Force Logout")
+        layout.addLayout(main_section)
+        
+        # Bottom toolbar - compact utility buttons
+        bottom_toolbar = QHBoxLayout()
+        bottom_toolbar.setSpacing(6)
+        
+        self.refresh_btn = QPushButton("🔄")
+        self.refresh_btn.clicked.connect(self.refresh_status)
+        self.refresh_btn.setFixedSize(30, 24)
+        self.refresh_btn.setToolTip("Refresh Status")
+        bottom_toolbar.addWidget(self.refresh_btn)
+        
+        self.logout_btn = QPushButton("⚠ Logout")
         self.logout_btn.clicked.connect(self.force_logout)
-        self.logout_btn.setStyleSheet("QPushButton { background-color: #ff6b6b; color: white; }")
-        actions_row2.addWidget(self.logout_btn)
+        self.logout_btn.setFixedHeight(24)
+        self.logout_btn.setStyleSheet("QPushButton { background-color: #f44336; color: white; border-radius: 4px; }")
+        bottom_toolbar.addWidget(self.logout_btn)
         
-        self.clear_session_btn = QPushButton("Clear Session Data")
+        self.clear_session_btn = QPushButton("🧹 Clear")
         self.clear_session_btn.clicked.connect(self.clear_session)
-        self.clear_session_btn.setStyleSheet("QPushButton { background-color: #ffa500; color: white; }")
-        actions_row2.addWidget(self.clear_session_btn)
+        self.clear_session_btn.setFixedHeight(24)
+        self.clear_session_btn.setStyleSheet("QPushButton { background-color: #FF5722; color: white; border-radius: 4px; }")
+        bottom_toolbar.addWidget(self.clear_session_btn)
         
-        actions_layout.addLayout(actions_row2)
+        bottom_toolbar.addStretch()  # Push buttons to left
         
-        layout.addWidget(actions_group)
+        layout.addLayout(bottom_toolbar)
         
         # Status bar
         self.statusBar().showMessage("Ready")
@@ -145,18 +308,21 @@ class MainWindow(QMainWindow):
         """Update the Riot Client status display"""
         try:
             is_running = self.riot_client.is_running()
-            if is_running:
-                self.status_label.setText("✅ Riot Client is running")
+            is_logged_in = self.riot_client.is_logged_in()
+            
+            if is_running and is_logged_in:
+                self.status_label.setText("🟢 Riot Client - Active & Logged In")
                 current_user = self.riot_client.get_current_user()
-                if current_user:
-                    self.current_account_label.setText(f"Current account: {current_user}")
-                else:
-                    self.current_account_label.setText("Account information not available")
+                self.current_account_label.setText(f"{current_user}")
+            elif is_running:
+                self.status_label.setText("🟡 Riot Client - Running (Not Logged In)")
+                self.current_account_label.setText("Ready for login")
             else:
-                self.status_label.setText("❌ Riot Client is not running")
-                self.current_account_label.setText("Start Riot Client to see account info")
+                self.status_label.setText("🔴 Riot Client - Not Running")
+                self.current_account_label.setText("Start client or use switcher")
         except Exception as e:
-            self.status_label.setText(f"Error checking status: {str(e)}")
+            self.status_label.setText(f"⚠️ Status Error")
+            self.current_account_label.setText(f"Error: {str(e)[:50]}...")
             
     def load_accounts(self):
         """Load saved accounts into the list"""
@@ -164,8 +330,30 @@ class MainWindow(QMainWindow):
         accounts = self.account_manager.get_all_accounts()
         
         for account in accounts:
-            item = QListWidgetItem(f"{account['display_name']} ({account['username']})")
+            # Check if account has saved session
+            account_backup_dir = self.riot_client._get_account_backup_path(account['display_name'])
+            has_session = os.path.exists(account_backup_dir)
+            
+            # Create status indicator
+            if has_session:
+                status_icon = "✅"
+                status_text = "Ready"
+            else:
+                status_icon = "⚙"
+                status_text = "Setup needed"
+            
+            # Format: "🎮 Display Name (username) ✅ Ready"
+            display_text = f"🎮 {account['display_name']} ({account['username']}) {status_icon}"
+            
+            item = QListWidgetItem(display_text)
             item.setData(Qt.ItemDataRole.UserRole, account['id'])
+            
+            # Add tooltip with more info
+            if has_session:
+                item.setToolTip(f"Ready for instant switching\nLast used: {account.get('last_used', 'Never')}")
+            else:
+                item.setToolTip(f"Needs first-time setup\nClick 'Setup Guide' after selecting")
+            
             self.account_list.addItem(item)
             
     def on_account_selected(self):
